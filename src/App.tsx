@@ -1,26 +1,46 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import styled from 'styled-components';
+import { COLORS } from './styles';
+
+const HEADER_HEIGHT = 48;
+const FOOTER_HEIGHT = 48;
+
+const Root = styled.div`
+  border: 1px solid violet;
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-bottom: ${FOOTER_HEIGHT}px;
+  padding-top: ${HEADER_HEIGHT}px;
+`;
+
+const Header = styled.div`
+  border: 1px solid violet;
+  box-sizing: border-box;
+  height: ${HEADER_HEIGHT}px;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+`;
+
+const Footer = styled.div`
+  border: 1px solid violet;
+  bottom: 0;
+  box-sizing: border-box;
+  left: 0;
+  min-height: ${FOOTER_HEIGHT}px;
+  position: fixed;
+  right: 0;
+`;
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Root>
+      <Header>Header</Header>
+      <div>message log</div>
+      <Footer>input</Footer>
+    </Root>
   );
-}
+};
 
 export default App;
