@@ -3,6 +3,13 @@ import styled from 'styled-components';
 import { COLORS, GUTTERS } from './styles';
 import Input from './Input';
 import CaptureEnter from './CaptureEnter';
+import Message from './Message';
+
+type MessageData = {
+  text: string;
+  timestamp: string;
+  user: string;
+};
 
 const HEADER_HEIGHT = 48;
 const FOOTER_HEIGHT = 48;
@@ -40,29 +47,22 @@ const Spacer = styled.div`
   flex-grow: 1;
 `;
 
-const Message = styled.p`
-  background: ${COLORS[0]};
-  padding: ${GUTTERS.S}px;
-  white-space: pre-wrap;
-  margin: 0 0 ${GUTTERS.L}px;
-
-  &:first-of-type {
-    margin-top: ${GUTTERS.L}px;
-  }
-`;
-
 // TODO: Instantiate this socket using a ref, a provider, or another safer
 // mechanism.
 const messageSocket = new WebSocket('ws://localhost:8080');
 
+// TODO: Use a more stable and meaningful method to generate and persist user
+// IDs.
+const userId = Math.random().toString();
+
 const App: React.FC = () => {
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<MessageData[]>([]);
   const [value, setValue] = useState('');
 
   useEffect(() => {
     // populate local message state with messages persisted to server
     messageSocket.addEventListener('message', event => {
-      setMessages(messages => [...messages, event.data]);
+      setMessages(messages => [...messages, JSON.parse(event.data)]);
     });
   }, []);
 
@@ -71,7 +71,14 @@ const App: React.FC = () => {
     window.scrollTo(0, document.body.scrollHeight);
   }, [messages]);
 
-  const handleSendMessage = (message: string) => messageSocket.send(message);
+  const handleSendMessage = (message: string) =>
+    messageSocket.send(
+      JSON.stringify({
+        user: userId,
+        text: message,
+        timestamp: new Date().toISOString(),
+      }),
+    );
 
   return (
     <Root>
@@ -82,7 +89,11 @@ const App: React.FC = () => {
       <Spacer />
 
       {messages.map(message => (
-        <Message>{message}</Message>
+        <Message
+          body={message.text}
+          isSelf={message.user === userId}
+          username={message.user}
+        />
       ))}
 
       <Footer>
