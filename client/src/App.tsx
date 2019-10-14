@@ -51,14 +51,27 @@ const Message = styled.p`
   }
 `;
 
+// TODO: Instantiate this socket using a ref, a provider, or another safer
+// mechanism.
+const messageSocket = new WebSocket('ws://localhost:8080');
+
 const App: React.FC = () => {
   const [messages, setMessages] = useState<string[]>([]);
   const [value, setValue] = useState('');
+
+  useEffect(() => {
+    // populate local message state with messages persisted to server
+    messageSocket.addEventListener('message', event => {
+      setMessages(messages => [...messages, event.data]);
+    });
+  }, []);
 
   // scroll to bottom of page whenever a new message is added
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
   }, [messages]);
+
+  const handleSendMessage = (message: string) => messageSocket.send(message);
 
   return (
     <Root>
@@ -80,7 +93,10 @@ const App: React.FC = () => {
               return;
             }
 
-            setMessages(messages => [...messages, nextMessage]);
+            // submit message to server
+            handleSendMessage(nextMessage);
+
+            // reset input state
             setValue('');
           }}
         >
