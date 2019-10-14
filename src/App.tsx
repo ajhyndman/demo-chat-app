@@ -58,15 +58,20 @@ const App: React.FC = () => {
   // scroll to bottom of page whenever a new message is added
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
-  }, [messages])
+  }, [messages]);
 
   return (
     <Root>
       <Header></Header>
+
+      {/* Use a spacer to push messages to the bottom of screen in new
+      conversations */}
       <Spacer />
+
       {messages.map(message => (
         <Message>{message}</Message>
       ))}
+
       <Footer>
         <CaptureEnter
           onEnter={() => {
