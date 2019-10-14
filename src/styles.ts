@@ -5,3 +5,14 @@ export const COLORS = {
   [-2]: '#9ebccc',
   [-5]: '#7ca4bb',
 };
+
+export const GUTTERS = {
+  S: 8,
+  M: 12,
+  L: 16,
+};
+
+export const LINE_HEIGHT = {
+  heading: 1.125,
+  body: 1.5,
+}
