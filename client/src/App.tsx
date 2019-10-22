@@ -1,15 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { MdSend, MdCameraAlt } from 'react-icons/md';
+
 import { COLORS, GUTTERS } from './styles';
 import Input from './Input';
 import CaptureEnter from './CaptureEnter';
 import Message from './Message';
 
-type MessageData = {
-  text: string;
-  timestamp: string;
-  user: string;
-};
+export type MessageData =
+  | {
+      type: 'TEXT';
+      body: string;
+      timestamp: string;
+      user: string;
+    }
+  | {
+      type: 'IMAGE';
+      uri: string;
+      timestamp: string;
+      user: string;
+    };
 
 const HEADER_HEIGHT = 48;
 const FOOTER_HEIGHT = 48;
@@ -43,8 +53,18 @@ const Footer = styled.div`
   right: 0;
 `;
 
+const Row = styled.div`
+  display: flex;
+`;
+
 const Spacer = styled.div`
   flex-grow: 1;
+`;
+
+const Button = styled.button`
+  border: none;
+  background: none;
+  padding: 10px;
 `;
 
 // TODO: Instantiate this socket using a ref, a provider, or another safer
@@ -58,6 +78,9 @@ const userId = Math.random().toString();
 const App: React.FC = () => {
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [value, setValue] = useState('');
+  const [imageMode, setImageMode] = useState(false);
+
+  const fileInput = useRef(null);
 
   useEffect(() => {
     // populate local message state with messages persisted to server
@@ -71,14 +94,56 @@ const App: React.FC = () => {
     window.scrollTo(0, document.body.scrollHeight);
   }, [messages]);
 
-  const handleSendMessage = (message: string) =>
-    messageSocket.send(
-      JSON.stringify({
-        user: userId,
-        text: message,
-        timestamp: new Date().toISOString(),
-      }),
-    );
+  // TODO: Use ref to improve performance of this callback.
+  const handleSendMessage = () => {
+    if (imageMode) {
+      // IMAGE message
+      // @ts-ignore: input won't be null here
+      const imageFiles = fileInput.current.files;
+      if (imageFiles.length !== 1) {
+        throw new Error('You can only upload exactly one file');
+      }
+      const file = imageFiles[0];
+
+      const fileReader = new FileReader();
+      fileReader.addEventListener('load', () => {
+        const uri = fileReader.result;
+
+        console.log(uri);
+
+        // submit message to server
+        messageSocket.send(
+          JSON.stringify({
+            type: 'IMAGE',
+            user: userId,
+            uri,
+            timestamp: new Date().toISOString(),
+          }),
+        );
+      });
+
+      fileReader.readAsDataURL(file);
+    } else {
+      // TEXT message
+      const nextMessage = value.trim();
+      if (nextMessage === '') {
+        return;
+      }
+
+      // submit message to server
+      messageSocket.send(
+        JSON.stringify({
+          type: 'TEXT',
+          user: userId,
+          body: nextMessage,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+
+    // reset input state
+    setValue('');
+  };
 
   return (
     <Root>
@@ -89,29 +154,28 @@ const App: React.FC = () => {
       <Spacer />
 
       {messages.map(message => (
-        <Message
-          body={message.text}
-          isSelf={message.user === userId}
-          username={message.user}
-        />
+        <Message message={message} isSelf={message.user === userId} />
       ))}
 
       <Footer>
-        <CaptureEnter
-          onEnter={() => {
-            const nextMessage = value.trim();
-            if (nextMessage === '') {
-              return;
-            }
-
-            // submit message to server
-            handleSendMessage(nextMessage);
-
-            // reset input state
-            setValue('');
-          }}
-        >
-          <Input value={value} onChange={setValue} />
+        <CaptureEnter onEnter={handleSendMessage}>
+          <Row>
+            {imageMode ? (
+              <input type="file" ref={fileInput} />
+            ) : (
+              <Input value={value} onChange={setValue} />
+            )}
+            <Button
+              onClick={() => {
+                setImageMode(currentMode => !currentMode);
+              }}
+            >
+              <MdCameraAlt />
+            </Button>
+            <Button onClick={() => handleSendMessage()}>
+              <MdSend />
+            </Button>
+          </Row>
         </CaptureEnter>
       </Footer>
     </Root>

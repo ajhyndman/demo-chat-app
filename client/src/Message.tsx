@@ -1,10 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
 import { COLORS, GUTTERS } from './styles';
+import { MessageData } from './App';
 
 type Props = {
-  username: string;
-  body: string;
+  message: MessageData;
   isSelf: boolean;
 };
 
@@ -33,10 +33,15 @@ const Body = styled.p`
   margin: 0;
 `;
 
-const Message = ({ body, isSelf, username }: Props) => (
+const Image = styled.img`
+  max-width: 200;
+`;
+
+const Message = ({ isSelf, message }: Props) => (
   <Root className={isSelf ? 'self' : ''}>
-    <UserName>{username} </UserName>
-    <Body>{body}</Body>
+    <UserName>{message.user} </UserName>
+    {message.type === 'IMAGE' && <Body><Image src={message.uri} /></Body>}
+    {message.type === 'TEXT' && <Body>{message.body}</Body>}
   </Root>
 );
 

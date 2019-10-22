@@ -15,7 +15,7 @@ const Control = styled(TextArea)`
   line-height: ${LINE_HEIGHT.body};
   padding: ${GUTTERS.S}px;
   resize: none;
-  width: 100%;
+  flex-grow: 1;
 `;
 
 const Input = ({ value, onChange }: Props) => {
